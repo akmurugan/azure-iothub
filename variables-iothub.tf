@@ -1,16 +1,24 @@
 variable "resource_group_name" {
   type    = string
-  default = "iothub-rg"
+  default = "iot-rg"
 }
 
 variable "location" {
   type    = string
-  default = "centralindia"
+  default = "eastus"
+}
+variable "subnet_name" {
+  type    = string
+  default = "arunsubnet"
+}
+variable "virtual_network_name" {
+  type    = string
+  default = "virtualNetwork1"
 }
 
 variable "storage_account_name" {
   type    = string
-  default = "tfstorage23456"
+  default = "arunstg"
 }
 
 variable "storage_container_name" {
@@ -20,7 +28,7 @@ variable "storage_container_name" {
 
 variable "base_name" {
   type    = string
-  default = "dev"
+  default = "arun"
 }
 
 variable "name" {
@@ -29,15 +37,8 @@ variable "name" {
 }
 
 variable "sku" {
-  type = object(
-    {
-      name     = string
-      capacity = number
-
-    }
-  )
+  type = object({ name = string, capacity = number })
   default = {
-
     name     = "S1"
     capacity = "1"
   }
@@ -45,30 +46,26 @@ variable "sku" {
 }
 
 variable "file_upload" {
-  type = object({
-
-    notifications      = bool
-    max_delivery_count = number
-    sas_ttl            = string
-    lock_duration      = string
-    default_ttl        = string
-  })
+  type = map(object({ notifications = bool, max_delivery_count = number, sas_ttl = string, lock_duration = string, default_ttl = string }))
   default = {
-    notifications      = "true"
-    max_delivery_count = 10
-    sas_ttl            = "PT1H"
-    lock_duration      = "PT1M"
-    default_ttl        = "PT1H"
+    file_upload = {
+      notifications      = "true"
+      max_delivery_count = 10
+      sas_ttl            = "PT1H"
+      lock_duration      = "PT1M"
+      default_ttl        = "PT1H"
+    }
   }
-
 }
 
 variable "ip_filter_rule" {
-  type = map(string)
+  type = map(object({ name = string, action = string, ip_mask = string }))
   default = {
-    name    = "ip"
-    action  = "Accept"
-    ip_mask = "10.0.0.0/31"
+    ip_filter_rule = {
+      name    = "ip"
+      action  = "Accept"
+      ip_mask = "10.0.0.0/31"
+    }
   }
 }
 
@@ -79,43 +76,35 @@ variable "tags" {
   }
 }
 
-
 variable "endpoint" {
-  type = map(object({ endpoint_names = string
-    batch_frequency_in_seconds = number
-    max_chunk_size_in_bytes    = number
-  encoding = string }))
+  type = map(object({ endpoint_names = string, batch_frequency_in_seconds = number, max_chunk_size_in_bytes = number }))
   default = {
-    "endpoint1" = {
+    endpoint = {
       endpoint_names             = "export"
       batch_frequency_in_seconds = 60
       max_chunk_size_in_bytes    = 10485760
-      encoding                   = "Avro"
     }
-    
   }
 }
 
 variable "routes" {
-  type = object({ name = string, source = string, condition = bool, endpoint_names = list(string), enabled = bool })
+  type = map(object({ name = string, source = string, condition = bool, endpoint_names = list(string), enabled = bool }))
   default = {
-    name           = "export"
-    source         = "DeviceMessages"
-    condition      = true
-    endpoint_names = ["export"]
-    enabled        = true
+    route = {
+      name           = "export"
+      source         = "DeviceMessages"
+      endpoint_names = ["export"]
+      condition      = true
+      enabled        = true
+    }
   }
 }
 variable "fallback_route" {
-  type = map(object({
-    condition      = bool
-    endpoint_names = list(string)
-  enabled = bool }))
-
+  type = map(object({ condition = bool, endpoint_names = list(string), enabled = bool }))
   default = {
     "fallback_route" = {
-      condition      = "true"
       endpoint_names = ["export"]
+      condition      = "true"
       enabled        = "true"
     }
   }
@@ -128,5 +117,29 @@ variable "eventhub_endpoint_name" {
 
 variable "private_endpoint" {
   type    = string
-  default = "iotub-pvt-endpoint"
+  default = "sysfore3"
+}
+variable "iothub_shared_access_policy" {
+  type = map(object({ name = string, registry_read = bool, registry_write = bool }))
+  default = {
+    "iothub_policy" = {
+      name           = "iothubpolicy"
+      registry_read  = true
+      registry_write = true
+
+    }
+  }
+}
+
+variable "dps_shared_access_policy" {
+  type = map(object({ name = string, enrollment_write = bool, enrollment_read = bool, registration_read = bool }))
+  default = {
+    "dps_policy" = {
+      name              = "dpspolicy"
+      enrollment_write  = "true"
+      enrollment_read   = "true"
+      registration_read = "true"
+
+    }
+  }
 }
